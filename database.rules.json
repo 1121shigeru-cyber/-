@@ -1,0 +1,53 @@
+{
+  "rules": {
+    "config": {
+      ".read": true,
+      "hostUid": {
+        ".write": "auth != null && !data.exists() && newData.val() === auth.uid"
+      }
+    },
+    "game": {
+      ".read": true,
+      ".write": "auth != null && auth.uid === root.child('config/hostUid').val()"
+    },
+    "results": {
+      ".read": true,
+      ".write": "auth != null && auth.uid === root.child('config/hostUid').val()"
+    },
+    "bonus": {
+      ".read": true,
+      ".write": "auth != null && auth.uid === root.child('config/hostUid').val()"
+    },
+    "players": {
+      ".read": true,
+      ".write": "auth != null && auth.uid === root.child('config/hostUid').val()",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['name', 'joinedAt'])",
+        "name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 20" },
+        "joinedAt": { ".validate": "newData.val() === now" },
+        "$other": { ".validate": false }
+      }
+    },
+    "answers": {
+      ".read": true,
+      ".write": "auth != null && auth.uid === root.child('config/hostUid').val()",
+      "$q": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && root.child('game/phase').val() === 'question' && root.child('game/qk').val() === $q && root.child('players/' + $uid).exists()",
+          ".validate": "newData.val() === 'ok' || newData.val() === 'doubt'"
+        }
+      }
+    },
+    "buzz": {
+      ".read": true,
+      ".write": "auth != null && auth.uid === root.child('config/hostUid').val()",
+      "$q": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && !data.exists() && root.child('game/phase').val() === 'reveal' && root.child('game/qk').val() === $q && root.child('results/' + $q).val() === 'doubt'",
+          ".validate": "newData.val() === now"
+        }
+      }
+    }
+  }
+}
